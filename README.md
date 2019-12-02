@@ -1,2 +1,3 @@
-#Hey Hey People
-Project purpose is to make a sample machine learning model
+Hey Hey People 
+
+This project's purpose is to make a sample machine learning model
