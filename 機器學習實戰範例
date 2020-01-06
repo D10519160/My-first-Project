@@ -1,0 +1,84 @@
+from numpy import *
+ 
+def loadDataSet(filename):
+	dataMat = []          #建立元祖
+	fr = open(filename)
+	for line in fr.readlines():
+		curLine = line.strip().split("\t")
+		fltLine = map(float,curLine) #使用map函式將curLine裡的數全部轉換為float型
+		dataMat.append(fltLine)
+	return dataMat
+ 
+def distEclud(vecA,vecB):          #計算兩個向量的歐式距離
+	return sqrt(sum(power(vecA-vecB,2)))
+ 
+def randCent(dataSet,k):            #位給定資料集構建一個包含k個隨機質心的集合
+	n = shape(dataSet)[1]   #shape函式此時返回的是dataSet元祖的列數
+	centroids = mat(zeros((k,n)))       #mat函式建立k行n列的矩陣，centroids存放簇中心
+	for j in range(n):
+		minJ = min(dataSet[:,j])           #第j列的最小值
+		rangeJ = float(max(dataSet[:,j]) - minJ)
+		centroids[:,j] = minJ + rangeJ * random.rand(k,1)  #random.rand(k,1)產生shape(k,1)的矩陣
+	return centroids
+ 
+def kMeans(dataSet,k,disMeas = distEclud,createCent = randCent):
+	m = shape(dataSet)[0] #shape函式此時返回的是dataSet元祖的行數
+	clusterAssment = mat(zeros((m,2)))      #建立一個m行2列的矩陣，第一列存放索引值，第二列存放誤差，誤差用來評價聚類效果
+	centroids = createCent(dataSet,k)  #建立k個質心，呼叫createCent()函式
+	clusterChanged =True #標誌變數，若為true則繼續迭代
+	print "質心位置更新過程變化："
+	while clusterChanged:
+		clusterChanged = False
+		for i in range(m):
+			minDist = inf #inf為正無窮大
+			minIndex = -1  #建立索引
+			for j in range(k):
+				#尋找最近的質心
+				disJI = disMeas(centroids[j,:],dataSet[i,:]) #計算每個點到質心的歐氏距離
+				if disJI(array([0, 0, 1]), array([0, 2, 0]))
+				#print array(nonzero(b2))
+				#=>[[0, 0, 1],[0, 2, 0]]
+				centroids[cent,:] = mean(ptsInClust,axis=0)  #計算所有點的均值，選項axis=0表示沿矩陣的列方向進行均值計算
+	return centroids,clusterAssment  #返回所有的類質心與點分配結果
+	
+def bikMeans(dataSet,k,disMeas = distEclud):
+	m = shape(dataSet)[0] #shape函式此時返回的是dataSet元祖的行數
+	clusterAssment = mat(zeros((m,2)))      #建立一個m行2列的矩陣，第一列存放索引值，第二列存放誤差，誤差用來評價聚類效果
+	#建立一個初始簇
+	centroid0 = mean(dataSet,axis=0).tolist()[0]
+	centList = [centroid0]
+	print centList
+	print len(centList)
+	for j in range(m):
+		clusterAssment[j,1] = disMeas(mat(centroid0),dataSet[j,:])**2 #計算所有點的均值，選項axis=0表示沿矩陣的列方向進行均值計算
+	while (len(centList)<k):
+		lowestSSE = inf #inf正無窮大
+		for i in range(len(centList)):
+			#嘗試劃分每一簇
+			ptsInCurrCluster = dataSet[nonzero(clusterAssment[:,0].A==i)[0],:]
+			centroidMat,splitClustAss = kMeans(ptsInCurrCluster,2,disMeas)
+			
+			sseSplit = sum(splitClustAss[:,1])
+			sseNotSplit = sum(clusterAssment[nonzero(clusterAssment[:,0].A!=i)[0],1])
+			print "sseSplit and notSplit:",sseSplit,sseNotSplit
+			if (sseSplit + sseNotSplit)<lowestSSE:
+				bestCentToSplit = i
+				bestNewCents = centroidMat
+				bestClustAss = splitClustAss.copy()
+				lowestSSE = sseSplit + sseNotSplit
+		#更新簇的分配結果
+		bestClustAss[nonzero(bestClustAss[:,0].A == 1)[0],0] = len(centList)
+		bestClustAss[nonzero(bestClustAss[:,0].A == 0)[0],0] = bestCentToSplit
+		
+		print "the bestCentToSplit is :",bestCentToSplit
+		print "the len of bestClustAss is:",len(bestClustAss)
+		centList[bestCentToSplit] = bestNewCents[0,:]
+		centList.append(bestNewCents[1,:])
+		clusterAssment[nonzero(clusterAssment[:,0].A == bestCentToSplit)[0],:] =bestClustAss
+	return centList,clusterAssment
+        #return mat(centList),clusterAssment
+ 
+datMat = mat(loadDataSet('data.txt'))
+myCentList,myNewAssment = bikMeans(datMat,2)
+print "最終質心：\n",myCentList
+print "索引值和均值：\n",myNewAssment
